@@ -1,0 +1,61 @@
+@model HealthTrack.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Log in";
+    ViewData["FullBleed"] = true;
+}
+
+<div class="auth">
+    <aside class="auth-art">
+        <partial name="_Pulse" />
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill" style="background:#FFFFFF; border:1px solid var(--line); box-shadow:var(--shadow-xs); font-size:0.85rem; font-weight:700; color:var(--primary); width:fit-content; position:relative; z-index:2;">
+            <i class="bi bi-shield-check"></i> Secure Workspace
+        </div>
+        <h2>Pick up where you left off.</h2>
+        <p>Your plan, your log and your next appointment are waiting.</p>
+        <div class="d-flex flex-column gap-2 mt-3" style="position:relative; z-index:2;">
+            <div class="d-flex align-items-center gap-2" style="font-size:0.92rem; color:var(--ink-soft);"><i class="bi bi-check-circle-fill" style="color:var(--success);"></i> Track workouts, nutrition & vital metrics</div>
+            <div class="d-flex align-items-center gap-2" style="font-size:0.92rem; color:var(--ink-soft);"><i class="bi bi-check-circle-fill" style="color:var(--success);"></i> Direct communication with certified trainers</div>
+            <div class="d-flex align-items-center gap-2" style="font-size:0.92rem; color:var(--ink-soft);"><i class="bi bi-check-circle-fill" style="color:var(--success);"></i> Real-time progress analytics & trends</div>
+        </div>
+    </aside>
+
+    <section class="auth-form">
+        <div class="auth-card">
+            <h1>Log in</h1>
+            <p class="text-muted mb-4">Use the email you registered with.</p>
+
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" autocomplete="username" />
+                        <label asp-for="Email"></label>
+                    </div>
+                    <span asp-validation-for="Email"></span>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input asp-for="Password" class="form-control" placeholder="Password" autocomplete="current-password" />
+                        <label asp-for="Password"></label>
+                    </div>
+                    <span asp-validation-for="Password"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label"></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">Log in</button>
+            </form>
+
+            <p class="mt-4 text-muted">New to HealthTrack? <a asp-action="Register">Create an account</a></p>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
