@@ -1,0 +1,103 @@
+@model HealthTrack.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Create account";
+    ViewData["FullBleed"] = true;
+    var isTrainer = Model.Role == "Trainer";
+}
+
+<div class="auth">
+    <aside class="auth-art">
+        <partial name="_Pulse" />
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill" style="background:#FFFFFF; border:1px solid var(--line); box-shadow:var(--shadow-xs); font-size:0.85rem; font-weight:700; color:var(--primary); width:fit-content; position:relative; z-index:2;">
+            <i class="bi bi-person-plus"></i> Join the Community
+        </div>
+        <h2>Set up in under a minute.</h2>
+        <p>Whether you're training for personal fitness or managing athletes, HealthTrack gives you full control.</p>
+        <div class="d-flex flex-column gap-2 mt-3" style="position:relative; z-index:2;">
+            <div class="d-flex align-items-center gap-2" style="font-size:0.92rem; color:var(--ink-soft);"><i class="bi bi-check-circle-fill" style="color:var(--success);"></i> Personalized workout and dietary schedules</div>
+            <div class="d-flex align-items-center gap-2" style="font-size:0.92rem; color:var(--ink-soft);"><i class="bi bi-check-circle-fill" style="color:var(--success);"></i> Intuitive logging and automatic BMI tracking</div>
+            <div class="d-flex align-items-center gap-2" style="font-size:0.92rem; color:var(--ink-soft);"><i class="bi bi-check-circle-fill" style="color:var(--success);"></i> Direct appointment scheduling with trainers</div>
+        </div>
+    </aside>
+
+    <section class="auth-form">
+        <div class="auth-card">
+            <h1>Create account</h1>
+            <p class="text-muted mb-4">Choose how you will use HealthTrack.</p>
+
+            <form asp-action="Register" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="seg mb-2" data-seg-radio role="radiogroup" aria-label="Account type">
+                    <span class="seg-thumb" aria-hidden="true"></span>
+                    <input type="radio" asp-for="Role" value="Client" id="role-client" class="seg-input" />
+                    <label for="role-client">Client</label>
+                    <input type="radio" asp-for="Role" value="Trainer" id="role-trainer" class="seg-input" />
+                    <label for="role-trainer">Trainer</label>
+                </div>
+                <div class="mb-3"><span asp-validation-for="Role"></span></div>
+
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input asp-for="FullName" class="form-control" placeholder="Full name" autocomplete="name" />
+                        <label asp-for="FullName"></label>
+                    </div>
+                    <span asp-validation-for="FullName"></span>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" autocomplete="username" />
+                        <label asp-for="Email"></label>
+                    </div>
+                    <span asp-validation-for="Email"></span>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input asp-for="Phone" class="form-control" placeholder="Phone" autocomplete="tel" />
+                        <label asp-for="Phone"></label>
+                    </div>
+                    <span asp-validation-for="Phone"></span>
+                </div>
+
+                <div class="reveal-row @(isTrainer ? "open" : "")" data-show-when-role="Trainer">
+                    <div>
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <input asp-for="Specialization" class="form-control" placeholder="Specialization" />
+                                <label asp-for="Specialization"></label>
+                            </div>
+                            <span asp-validation-for="Specialization"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-1">
+                    <div class="form-floating">
+                        <input asp-for="Password" class="form-control" placeholder="Password" autocomplete="new-password" />
+                        <label asp-for="Password"></label>
+                    </div>
+                    <span asp-validation-for="Password"></span>
+                </div>
+                <p class="form-text mb-3">Use 8 or more characters with upper and lower case letters, a number and a symbol.</p>
+
+                <div class="mb-4">
+                    <div class="form-floating">
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm password" autocomplete="new-password" />
+                        <label asp-for="ConfirmPassword"></label>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
+            </form>
+
+            <p class="mt-4 text-muted">Already registered? <a asp-action="Login">Log in</a></p>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
