@@ -1,0 +1,102 @@
+@model HealthTrack.Models.AssignmentsPageViewModel
+@{
+    ViewData["Title"] = "Assignments";
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+<div class="dash-head">
+    <h1>Trainer assignments</h1>
+    <p class="text-muted mb-0">Each client has one active trainer. Choosing a new trainer replaces the old one.</p>
+</div>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <a class="chip chip-link @(Model.UnassignedOnly ? "" : "chip-on")" asp-action="Assignments">All clients</a>
+    <a class="chip chip-link @(Model.UnassignedOnly ? "chip-on" : "")" asp-action="Assignments" asp-route-unassignedOnly="true">
+        Without a trainer (@Model.UnassignedCount)
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel">
+            <h2>Clients</h2>
+            @if (!Model.Trainers.Any())
+            {
+                <p class="note"><i class="bi bi-info-circle"></i> No trainers have registered yet. Register a trainer account first.</p>
+            }
+            @if (!Model.Clients.Any())
+            {
+                <p class="empty">@(Model.UnassignedOnly ? "Every client has a trainer." : "No clients have registered yet.")</p>
+            }
+            else
+            {
+                <ul class="rows assign-rows">
+                    @foreach (var c in Model.Clients)
+                    {
+                        <li>
+                            <span class="avatar">@Initial(c.ClientName)</span>
+                            <span>
+                                <span class="item-title d-block">@c.ClientName</span>
+                                <span class="item-sub">
+                                    @if (c.TrainerName != null)
+                                    {
+                                        <text>Trainer: @c.TrainerName since @c.Since?.ToString("dd MMM yyyy")</text>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warn">No trainer yet</span>
+                                    }
+                                </span>
+                            </span>
+                            <span class="assign-actions">
+                                <form asp-action="Assign" method="post" class="assign-form">
+                                    <input type="hidden" name="clientId" value="@c.ClientId" />
+                                    <input type="hidden" name="unassignedOnly" value="@Model.UnassignedOnly.ToString().ToLower()" />
+                                    <select name="trainerId" class="form-select form-select-sm" aria-label="Trainer for @c.ClientName" required>
+                                        <option value="">Choose trainer</option>
+                                        @foreach (var t in Model.Trainers)
+                                        {
+                                            <option value="@t.Id" selected="@(c.TrainerId == t.Id)">@t.Name</option>
+                                        }
+                                    </select>
+                                    <button class="btn btn-primary btn-sm" type="submit" data-loading>Assign</button>
+                                </form>
+                                @if (c.TrainerId != null)
+                                {
+                                    <form asp-action="Unassign" method="post" data-confirm="Remove the trainer from @c.ClientName?">
+                                        <input type="hidden" name="clientId" value="@c.ClientId" />
+                                        <input type="hidden" name="unassignedOnly" value="@Model.UnassignedOnly.ToString().ToLower()" />
+                                        <button class="icon-btn icon-btn--danger" type="submit" aria-label="Remove trainer"><i class="bi bi-x-lg"></i></button>
+                                    </form>
+                                }
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel">
+            <h2>Trainer workload</h2>
+            @if (!Model.Trainers.Any())
+            {
+                <p class="empty">No trainers yet.</p>
+            }
+            else
+            {
+                var max = Math.Max(1, Model.Trainers.Max(t => t.ClientCount));
+                foreach (var t in Model.Trainers)
+                {
+                    <div class="meter">
+                        <div class="row-top">
+                            <span>@t.Name@(string.IsNullOrWhiteSpace(t.Specialization) ? "" : " · " + t.Specialization)</span>
+                            <strong>@t.ClientCount</strong>
+                        </div>
+                        <div class="track"><div class="fill" data-pct="@((t.ClientCount * 100d / max).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))"></div></div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
