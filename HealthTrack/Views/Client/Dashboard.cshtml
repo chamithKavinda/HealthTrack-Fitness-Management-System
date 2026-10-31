@@ -1,0 +1,138 @@
+@using System.Globalization
+@model HealthTrack.Models.ClientDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+    // BMI 15 to 40 mapped onto the ring
+    double ringPct = Model.Bmi is null ? 0 : Math.Clamp(((double)Model.Bmi.Value - 15d) / 25d, 0d, 1d);
+    string Inv(decimal v, string f) => v.ToString(f, CultureInfo.InvariantCulture);
+}
+
+<div class="dash-head">
+    <h1>@greeting, @Model.FullName</h1>
+    <p class="text-muted mb-0">Here is where you stand today.</p>
+</div>
+
+<section class="scoreboard mb-4" aria-label="Your numbers">
+    <div class="cell">
+        <span class="label"><i class="bi bi-speedometer2 text-primary"></i> Latest weight</span>
+        <div class="score-row">
+            @if (Model.LatestWeightKg is decimal w)
+            {
+                <span class="score" data-count="@Inv(w, "0.0")" data-decimals="1">@Inv(w, "0.0")</span><span class="unit">kg</span>
+            }
+            else
+            {
+                <span class="score">-</span>
+            }
+        </div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-heart-pulse text-success"></i> Body Mass Index</span>
+        <div class="score-row">
+            @if (Model.Bmi is decimal b)
+            {
+                <span class="score" data-count="@Inv(b, "0.0")" data-decimals="1">@Inv(b, "0.0")</span><span class="unit">@Model.BmiCategory</span>
+            }
+            else
+            {
+                <span class="score">-</span>
+            }
+        </div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-lightning-charge text-warning"></i> Workouts logged</span>
+        <div class="score-row">
+            <span class="score" data-count="@Model.WorkoutsLogged">@Model.WorkoutsLogged</span><span class="unit">sessions</span>
+        </div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-fire text-danger"></i> Calories burned</span>
+        <div class="score-row">
+            <span class="score" data-count="@Model.CaloriesBurned">@Model.CaloriesBurned</span><span class="unit">kcal</span>
+        </div>
+    </div>
+    <div class="cell @(Model.UnreadNotifications > 0 ? "alert" : "")">
+        <span class="label"><i class="bi bi-bell text-danger"></i> Notifications</span>
+        <div class="score-row">
+            <span class="score" data-count="@Model.UnreadNotifications">@Model.UnreadNotifications</span><span class="unit">unread</span>
+        </div>
+    </div>
+</section>
+
+<div class="row g-3">
+    <div class="col-xl-4 col-md-6">
+        <div class="panel text-center">
+            <h2 class="text-start">Body mass index</h2>
+            @if (Model.Bmi is decimal bmi)
+            {
+                <div class="ring" data-pct="@ringPct.ToString("0.###", CultureInfo.InvariantCulture)" data-cat="@Model.BmiCategory">
+                    <svg viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="track" cx="60" cy="60" r="52" />
+                        <circle class="bar" cx="60" cy="60" r="52" />
+                    </svg>
+                    <div class="center"><span class="score">@Inv(bmi, "0.0")</span></div>
+                </div>
+                <span class="chip @(Model.BmiCategory == "Healthy" ? "" : "chip--pending")">@Model.BmiCategory</span>
+            }
+            else
+            {
+                <p class="empty text-start">@(Model.LatestWeightKg is null ? "Log your weight and height to see your BMI here." : Model.BmiCategory)</p>
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-5 col-md-6">
+        <div class="panel">
+            <h2>Upcoming appointments</h2>
+            @if (!Model.Upcoming.Any())
+            {
+                <p class="empty">Nothing booked yet.</p>
+            }
+            else
+            {
+                <ol class="timeline">
+                    @foreach (var a in Model.Upcoming)
+                    {
+                        <li>
+                            <div class="date-chip"><span class="d">@a.When.ToString("dd")</span><span class="m">@a.When.ToString("MMM")</span></div>
+                            <div>
+                                <div class="item-title">@a.Person</div>
+                                <div class="item-sub">@a.When.ToString("h:mm tt")@(string.IsNullOrWhiteSpace(a.Reason) ? "" : ", " + a.Reason)</div>
+                            </div>
+                            <span class="chip @(a.Status == "Pending" ? "chip--pending" : "")">@a.Status</span>
+                        </li>
+                    }
+                </ol>
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-12">
+      <div class="panel-stack">
+        <div class="panel">
+            <h2>Quick log</h2>
+            <div class="d-grid gap-2">
+                <a class="btn btn-primary" asp-action="Health"><i class="bi bi-heart-pulse"></i> Add measurement</a>
+                <a class="btn btn-outline-secondary" asp-action="Workouts"><i class="bi bi-lightning-charge"></i> Log workout</a>
+                <a class="btn btn-outline-secondary" asp-action="Meals"><i class="bi bi-egg-fried"></i> Log meal</a>
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Plans from your trainer</h2>
+            <div class="mb-3">
+                <span class="score score-sm" data-count="@Model.WorkoutPlans">@Model.WorkoutPlans</span>
+                <div class="item-sub">workout plans</div>
+            </div>
+            <div>
+                <span class="score score-sm" data-count="@Model.DietPlans">@Model.DietPlans</span>
+                <div class="item-sub">diet plans</div>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm mt-3" asp-action="Plans">View plans</a>
+        </div>
+      </div>
+    </div>
+</div>
