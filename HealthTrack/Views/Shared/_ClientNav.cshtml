@@ -1,0 +1,15 @@
+@{
+    var current = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string Active(string a) => string.Equals(current, a, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<nav class="subnav" aria-label="Client sections">
+    <a class="@Active("Dashboard")" asp-controller="Client" asp-action="Dashboard"><i class="bi bi-grid-1x2"></i> Overview</a>
+    <a class="@Active("Health")" asp-controller="Client" asp-action="Health"><i class="bi bi-heart-pulse"></i> Health</a>
+    <a class="@Active("Workouts")" asp-controller="Client" asp-action="Workouts"><i class="bi bi-lightning-charge"></i> Workouts</a>
+    <a class="@Active("Meals")" asp-controller="Client" asp-action="Meals"><i class="bi bi-egg-fried"></i> Meals</a>
+    <a class="@Active("Plans")" asp-controller="Client" asp-action="Plans"><i class="bi bi-clipboard2-pulse"></i> Plans</a>
+    <a class="@Active("Appointments")" asp-controller="Client" asp-action="Appointments"><i class="bi bi-calendar-check"></i> Appointments</a>
+    <a class="@Active("Feedback")" asp-controller="Client" asp-action="Feedback"><i class="bi bi-chat-left-text"></i> Feedback</a>
+    <a class="@Active("Progress")" asp-controller="Client" asp-action="Progress"><i class="bi bi-graph-up-arrow"></i> Progress</a>
+    <a class="@Active("Profile")" asp-controller="Client" asp-action="Profile"><i class="bi bi-person"></i> Profile</a>
+</nav>

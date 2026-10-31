@@ -1,0 +1,77 @@
+@model HealthTrack.Models.WorkoutsPageViewModel
+@{ ViewData["Title"] = "Workouts"; }
+<div class="dash-head">
+    <h1>Workout log</h1>
+    <p class="text-muted mb-0">Log each session. The last seven days are summed up below.</p>
+</div>
+
+<section class="scoreboard scoreboard--3 mb-4">
+    <div class="cell"><span class="label">Sessions this week</span><span class="score" data-count="@Model.WeekSessions">@Model.WeekSessions</span></div>
+    <div class="cell"><span class="label">Active time</span><span class="score" data-count="@Model.WeekMinutes">@Model.WeekMinutes</span><span class="unit">min</span></div>
+    <div class="cell"><span class="label">Calories burned</span><span class="score" data-count="@Model.WeekKcal">@Model.WeekKcal</span><span class="unit">kcal</span></div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form class="panel" asp-action="AddWorkout" method="post" novalidate>
+            <h2>Log a workout</h2>
+            <input type="hidden" asp-for="Input.ItemId" />
+            @if (Model.Input.ItemId != null)
+            {
+                <div class="log-note"><i class="bi bi-clipboard2-check"></i> Logging an exercise from your plan.</div>
+            }
+            <div class="form-floating mb-1">
+                <input asp-for="Input.Date" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" value="@Model.Input.Date.ToString("yyyy-MM-dd")" />
+                <label asp-for="Input.Date">Date</label>
+            </div>
+            <span asp-validation-for="Input.Date" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.ExerciseName" class="form-control" placeholder="Exercise" />
+                <label asp-for="Input.ExerciseName"></label>
+            </div>
+            <span asp-validation-for="Input.ExerciseName" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.DurationMin" type="number" class="form-control" placeholder="Minutes" />
+                <label asp-for="Input.DurationMin"></label>
+            </div>
+            <span asp-validation-for="Input.DurationMin" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.CaloriesBurned" type="number" class="form-control" placeholder="Calories" />
+                <label asp-for="Input.CaloriesBurned"></label>
+            </div>
+            <span asp-validation-for="Input.CaloriesBurned" class="field-error"></span>
+            <button class="btn btn-primary w-100 mt-3" type="submit" data-loading>Save workout</button>
+        </form>
+    </div>
+    <div class="col-lg-8">
+        <div class="panel">
+            <h2>Recent sessions</h2>
+            @if (!Model.Days.Any())
+            {
+                <p class="empty">No workouts logged yet.</p>
+            }
+            @foreach (var day in Model.Days)
+            {
+                <div class="day-group">
+                    <div class="day-head">
+                        <strong>@day.Date.ToString("dddd, dd MMM")</strong>
+                        <span class="text-muted">@day.Minutes min · @day.Kcal kcal</span>
+                    </div>
+                    @foreach (var w in day.Items)
+                    {
+                        <div class="log-row">
+                            <div>
+                                <div class="item-title">@w.Name</div>
+                                <div class="item-sub">@w.DurationMin min@(w.Calories is int c ? $" · {c} kcal" : "")</div>
+                            </div>
+                            <form asp-action="DeleteWorkout" method="post" data-confirm="Delete this workout?">
+                                <input type="hidden" name="id" value="@w.Id" />
+                                <button class="icon-btn icon-btn--danger" type="submit" aria-label="Delete workout"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,131 @@
+@model HealthTrack.Models.NotificationsPageViewModel
+@{
+    ViewData["Title"] = "Notifications";
+    var returnUrl = "/Notifications";
+    var minWhen = DateTime.Now.AddMinutes(2).ToString("yyyy-MM-ddTHH:mm");
+    var maxWhen = DateTime.Now.AddDays(365).ToString("yyyy-MM-ddTHH:mm");
+    var whenValue = Model.Input.When?.ToString("yyyy-MM-ddTHH:mm") ?? "";
+    var types = new[] { ("Workout", "Workout"), ("Meal", "Meal"), ("Appointment", "Appointment"), ("System", "General") };
+}
+<div class="dash-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>Notifications</h1>
+        <p class="text-muted mb-0">New items are highlighted until you mark them as read. Set your own reminders on the right.</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (Model.Unread.Any())
+        {
+            <form asp-action="MarkAllRead" method="post">
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-check2-all"></i> Mark all read</button>
+            </form>
+        }
+        @if (Model.Earlier.Any())
+        {
+            <form asp-action="ClearRead" method="post" onsubmit="return confirm('Remove all read notifications?');">
+                <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-trash3"></i> Clear read</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel mb-4">
+            <h2>New (@Model.Unread.Count)</h2>
+            @if (!Model.Unread.Any()) { <p class="empty mb-0">You are all caught up.</p> }
+            else
+            {
+                <ul class="notif-list">
+                    @foreach (var n in Model.Unread)
+                    {
+                        <li class="notif unread">
+                            <span class="notif-icon"><i class="bi @n.Icon"></i></span>
+                            <div class="notif-body"><div class="notif-msg">@n.Message</div><div class="notif-meta">@n.Ago · @n.Type</div></div>
+                            <form asp-action="MarkRead" method="post">
+                                <input type="hidden" name="id" value="@n.Id" />
+                                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                <button class="icon-btn notif-check" type="submit" aria-label="Mark as read"><i class="bi bi-check2"></i></button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="panel">
+            <h2>Earlier</h2>
+            @if (!Model.Earlier.Any()) { <p class="empty mb-0">No earlier notifications.</p> }
+            else
+            {
+                <ul class="notif-list">
+                    @foreach (var n in Model.Earlier)
+                    {
+                        <li class="notif">
+                            <span class="notif-icon"><i class="bi @n.Icon"></i></span>
+                            <div class="notif-body"><div class="notif-msg">@n.Message</div><div class="notif-meta">@n.Ago · @n.Type</div></div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <form class="panel mb-4" asp-action="AddReminder" method="post" novalidate>
+            <h2>Set a reminder</h2>
+            <div class="form-floating mb-1">
+                <input asp-for="Input.Message" class="form-control" maxlength="200" placeholder="Reminder" />
+                <label asp-for="Input.Message">Remind me to...</label>
+            </div>
+            <span asp-validation-for="Input.Message" class="field-error"></span>
+
+            <div class="row g-2 mt-1">
+                <div class="col-sm-6">
+                    <div class="form-floating">
+                        <select asp-for="Input.Type" class="form-select">
+                            @foreach (var (v, label) in types)
+                            {
+                                <option value="@v" selected="@(Model.Input.Type == v)">@label</option>
+                            }
+                        </select>
+                        <label asp-for="Input.Type">Category</label>
+                    </div>
+                    <span asp-validation-for="Input.Type" class="field-error"></span>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-floating">
+                        <input asp-for="Input.When" type="datetime-local" class="form-control" min="@minWhen" max="@maxWhen" value="@whenValue" />
+                        <label asp-for="Input.When">When</label>
+                    </div>
+                    <span asp-validation-for="Input.When" class="field-error"></span>
+                </div>
+            </div>
+            <button class="btn btn-primary mt-3" type="submit"><i class="bi bi-alarm"></i> Set reminder</button>
+        </form>
+
+        <div class="panel">
+            <h2>Upcoming (@Model.Upcoming.Count)</h2>
+            @if (!Model.Upcoming.Any()) { <p class="empty mb-0">No reminders scheduled. Appointment reminders appear here an hour before the session.</p> }
+            else
+            {
+                <ul class="notif-list">
+                    @foreach (var n in Model.Upcoming)
+                    {
+                        <li class="notif">
+                            <span class="notif-icon"><i class="bi @n.Icon"></i></span>
+                            <div class="notif-body">
+                                <div class="notif-msg">@n.Message</div>
+                                <div class="notif-meta">@n.When.ToString("ddd, dd MMM · h:mm tt") · @n.Type</div>
+                            </div>
+                            <form asp-action="DeleteReminder" method="post">
+                                <input type="hidden" name="id" value="@n.Id" />
+                                <button class="icon-btn" type="submit" aria-label="Delete reminder"><i class="bi bi-x-lg"></i></button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>

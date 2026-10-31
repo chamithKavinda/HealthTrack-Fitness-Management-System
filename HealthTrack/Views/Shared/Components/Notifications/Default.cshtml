@@ -1,0 +1,48 @@
+@model HealthTrack.Models.NotificationRailModel
+@{
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+<section class="rail-card notif-rail" aria-label="Notifications">
+    <div class="rail-head">
+        <h2><i class="bi bi-bell"></i> Notifications</h2>
+        @if (Model.Unread > 0) { <span class="count-pill">@Model.Unread new</span> }
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <p class="empty mb-0">Nothing yet. Updates from your @(User.IsInRole("Trainer") ? "clients" : "trainer") will appear here.</p>
+    }
+    else
+    {
+        <ul class="notif-list">
+            @foreach (var n in Model.Items)
+            {
+                <li class="notif @(n.IsRead ? "" : "unread")">
+                    <span class="notif-icon"><i class="bi @n.Icon"></i></span>
+                    <div class="notif-body">
+                        <div class="notif-msg">@n.Message</div>
+                        <div class="notif-meta">@n.Ago@(n.IsRead ? "" : " · New")</div>
+                    </div>
+                    @if (!n.IsRead)
+                    {
+                        <form asp-controller="Notifications" asp-action="MarkRead" method="post">
+                            <input type="hidden" name="id" value="@n.Id" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button class="icon-btn notif-check" type="submit" aria-label="Mark as read" title="Mark as read"><i class="bi bi-check2"></i></button>
+                        </form>
+                    }
+                </li>
+            }
+        </ul>
+        <div class="rail-foot">
+            @if (Model.Unread > 0)
+            {
+                <form asp-controller="Notifications" asp-action="MarkAllRead" method="post">
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <button class="link-btn" type="submit">Mark all read</button>
+                </form>
+            }
+            <a class="link-btn ms-auto" asp-controller="Notifications" asp-action="Index">View all</a>
+        </div>
+    }
+</section>
