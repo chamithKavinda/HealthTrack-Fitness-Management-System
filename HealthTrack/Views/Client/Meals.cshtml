@@ -1,0 +1,76 @@
+@model HealthTrack.Models.MealsPageViewModel
+@{
+    ViewData["Title"] = "Meals";
+    var types = new[] { "Breakfast", "Lunch", "Dinner", "Snack" };
+}
+<div class="dash-head">
+    <h1>Meal log</h1>
+    <p class="text-muted mb-0">Note what you eat. Calories are optional.</p>
+</div>
+
+<section class="scoreboard scoreboard--2 mb-4">
+    <div class="cell"><span class="label">Meals today</span><span class="score" data-count="@Model.TodayMeals">@Model.TodayMeals</span></div>
+    <div class="cell"><span class="label">Calories today</span><span class="score" data-count="@Model.TodayKcal">@Model.TodayKcal</span><span class="unit">kcal</span></div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form class="panel" asp-action="AddMeal" method="post" novalidate>
+            <h2>Log a meal</h2>
+            <div class="form-floating mb-1">
+                <input asp-for="Input.Date" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" value="@Model.Input.Date.ToString("yyyy-MM-dd")" />
+                <label asp-for="Input.Date">Date</label>
+            </div>
+            <span asp-validation-for="Input.Date" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <select asp-for="Input.MealType" class="form-select">
+                    @foreach (var t in types) { <option value="@t" selected="@(Model.Input.MealType == t)">@t</option> }
+                </select>
+                <label asp-for="Input.MealType"></label>
+            </div>
+            <span asp-validation-for="Input.MealType" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.FoodDescription" class="form-control" placeholder="Food" />
+                <label asp-for="Input.FoodDescription"></label>
+            </div>
+            <span asp-validation-for="Input.FoodDescription" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.Calories" type="number" class="form-control" placeholder="Calories" />
+                <label asp-for="Input.Calories"></label>
+            </div>
+            <span asp-validation-for="Input.Calories" class="field-error"></span>
+            <button class="btn btn-primary w-100 mt-3" type="submit" data-loading>Save meal</button>
+        </form>
+    </div>
+    <div class="col-lg-8">
+        <div class="panel">
+            <h2>Recent meals</h2>
+            @if (!Model.Days.Any())
+            {
+                <p class="empty">No meals logged yet.</p>
+            }
+            @foreach (var day in Model.Days)
+            {
+                <div class="day-group">
+                    <div class="day-head">
+                        <strong>@day.Date.ToString("dddd, dd MMM")</strong>
+                        <span class="text-muted">@day.Kcal kcal</span>
+                    </div>
+                    @foreach (var m in day.Items)
+                    {
+                        <div class="log-row">
+                            <div>
+                                <div class="item-title">@m.Food</div>
+                                <div class="item-sub">@m.MealType@(m.Calories is int c ? $" · {c} kcal" : "")</div>
+                            </div>
+                            <form asp-action="DeleteMeal" method="post" data-confirm="Delete this meal?">
+                                <input type="hidden" name="id" value="@m.Id" />
+                                <button class="icon-btn icon-btn--danger" type="submit" aria-label="Delete meal"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
