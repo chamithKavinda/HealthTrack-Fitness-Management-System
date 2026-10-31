@@ -1,0 +1,102 @@
+@using HealthTrack.Services
+@model HealthTrack.Models.ClientAppointmentsViewModel
+@{
+    ViewData["Title"] = "Appointments";
+    var slots = AppointmentRules.SlotOptions();
+    string ChipClass(string s) => s switch { "Approved" => "", "Completed" => "", "Pending" => "chip--pending", _ => "chip--off" };
+}
+<div class="dash-head">
+    <h1>Appointments</h1>
+    <p class="text-muted mb-0">Book a session with your trainer. They will approve it or suggest another time.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form class="panel" asp-action="BookAppointment" method="post" novalidate>
+            <h2>Book a session</h2>
+            <div asp-validation-summary="ModelOnly" class="field-error mb-2"></div>
+            @if (Model.TrainerName == null)
+            {
+                <p class="note"><i class="bi bi-info-circle"></i> You don't have a trainer yet. The admin assigns one from the Assignments page.</p>
+            }
+            else
+            {
+                <p class="item-sub mb-3"><i class="bi bi-person-check"></i> With <strong>@Model.TrainerName</strong> · each session is 1 hour</p>
+                <div class="form-floating mb-1">
+                    <input asp-for="Input.Date" type="date" class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.AddDays(AppointmentRules.MaxDaysAhead).ToString("yyyy-MM-dd")"
+                           value="@Model.Input.Date.ToString("yyyy-MM-dd")" />
+                    <label asp-for="Input.Date">Date</label>
+                </div>
+                <span asp-validation-for="Input.Date" class="field-error"></span>
+
+                <div class="form-floating mb-1 mt-2">
+                    <select asp-for="Input.Time" class="form-select">
+                        @foreach (var s in slots) { <option value="@s.Value" selected="@(Model.Input.Time == s.Value)">@s.Label</option> }
+                    </select>
+                    <label asp-for="Input.Time">Time</label>
+                </div>
+                <span asp-validation-for="Input.Time" class="field-error"></span>
+
+                <div class="form-floating mb-1 mt-2">
+                    <textarea asp-for="Input.Reason" class="form-control" placeholder="Reason" style="height:100px"></textarea>
+                    <label asp-for="Input.Reason">What is it about?</label>
+                </div>
+                <span asp-validation-for="Input.Reason" class="field-error"></span>
+                <button class="btn btn-primary w-100 mt-3" type="submit" data-loading>Request appointment</button>
+            }
+        </form>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="panel mb-4">
+            <h2>Upcoming</h2>
+            @if (!Model.Upcoming.Any()) { <p class="empty mb-0">Nothing booked. Use the form to request a session.</p> }
+            else
+            {
+                <ul class="appt-list">
+                    @foreach (var a in Model.Upcoming)
+                    {
+                        <li class="appt">
+                            <div class="date-chip"><span class="d">@a.When.ToString("dd")</span><span class="m">@a.When.ToString("MMM")</span></div>
+                            <div class="appt-main">
+                                <div class="item-title">@a.TrainerName · @a.When.ToString("dddd, h:mm tt")</div>
+                                <div class="item-sub">@a.Reason</div>
+                                @if (!string.IsNullOrWhiteSpace(a.Remarks)) { <div class="appt-remark"><i class="bi bi-chat-left-text"></i> @a.Remarks</div> }
+                            </div>
+                            <div class="appt-side">
+                                <span class="chip @ChipClass(a.Status)">@a.Status</span>
+                                <form asp-action="CancelAppointment" method="post" data-confirm="Cancel this appointment?">
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">Cancel</button>
+                                </form>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="panel">
+            <h2>History</h2>
+            @if (!Model.History.Any()) { <p class="empty mb-0">No past appointments yet.</p> }
+            else
+            {
+                <ul class="appt-list">
+                    @foreach (var a in Model.History)
+                    {
+                        <li class="appt appt--past">
+                            <div class="date-chip"><span class="d">@a.When.ToString("dd")</span><span class="m">@a.When.ToString("MMM")</span></div>
+                            <div class="appt-main">
+                                <div class="item-title">@a.TrainerName · @a.When.ToString("ddd, h:mm tt")</div>
+                                <div class="item-sub">@a.Reason</div>
+                                @if (!string.IsNullOrWhiteSpace(a.Remarks)) { <div class="appt-remark"><i class="bi bi-chat-left-text"></i> @a.Remarks</div> }
+                            </div>
+                            <div class="appt-side"><span class="chip @ChipClass(a.Status)">@a.Status</span></div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
