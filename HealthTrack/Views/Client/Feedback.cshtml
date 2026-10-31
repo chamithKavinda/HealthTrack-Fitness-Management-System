@@ -1,0 +1,29 @@
+@model HealthTrack.Models.ClientFeedbackViewModel
+@{
+    ViewData["Title"] = "Feedback";
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+<div class="dash-head">
+    <h1>Coach feedback</h1>
+    <p class="text-muted mb-0">Notes your trainer has written for you, newest first.</p>
+</div>
+
+<div class="panel">
+    @if (!Model.Items.Any()) { <p class="empty mb-0">No feedback yet. When your trainer writes to you it will appear here and in your notifications.</p> }
+    else
+    {
+        <ul class="rows">
+            @foreach (var f in Model.Items)
+            {
+                <li>
+                    <span class="avatar">@Initial(f.TrainerName)</span>
+                    <div>
+                        <div class="item-title">@f.TrainerName</div>
+                        <div class="fb-msg">@f.Message</div>
+                        <div class="item-sub">@f.When.ToString("dddd, dd MMM yyyy · h:mm tt")</div>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</div>
