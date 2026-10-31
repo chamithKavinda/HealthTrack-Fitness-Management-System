@@ -1,0 +1,47 @@
+@using System.Globalization
+@model HealthTrack.Models.ProgressViewModel
+@{
+    ViewData["Title"] = "Progress";
+    string Signed(decimal v) => (v > 0 ? "+" : "") + v.ToString("0.0", CultureInfo.InvariantCulture);
+}
+<div class="dash-head">
+    <h1>Your progress</h1>
+    <p class="text-muted mb-0">Trends from your measurements, workouts and meals.</p>
+</div>
+
+<section class="scoreboard scoreboard--3 mb-4">
+    <div class="cell"><span class="label">Weight change</span>
+        @if (Model.WeightChange is decimal wc) { <span class="score">@Signed(wc)</span><span class="unit">kg</span> } else { <span class="score">-</span> }
+    </div>
+    <div class="cell"><span class="label">Burned, 14 days</span><span class="score" data-count="@Model.BurnedTotal">@Model.BurnedTotal</span><span class="unit">kcal</span></div>
+    <div class="cell"><span class="label">Eaten, 14 days</span><span class="score" data-count="@Model.EatenTotal">@Model.EatenTotal</span><span class="unit">kcal</span></div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel">
+            <h2>Weight and BMI</h2>
+            @if (!Model.HasTrend)
+            {
+                <p class="empty">Add at least two measurements on the <a asp-action="Health">Health page</a> to see a trend.</p>
+            }
+            else
+            {
+                <div class="chart-box"><canvas id="weightChart" role="img" aria-label="Line chart of weight and BMI over time"></canvas></div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel">
+            <h2>Calories, last 14 days</h2>
+            <div class="chart-box"><canvas id="caloriesChart" role="img" aria-label="Bar chart of calories burned and eaten per day"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<script id="progress-data" type="application/json">@Json.Serialize(Model.Chart)</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="~/js/progress.js" asp-append-version="true"></script>
+}
