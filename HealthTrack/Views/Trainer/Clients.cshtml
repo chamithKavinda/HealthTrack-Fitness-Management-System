@@ -1,0 +1,46 @@
+@using System.Globalization
+@model List<HealthTrack.Models.TrainerClientRow>
+@{
+    ViewData["Title"] = "My clients";
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+<div class="dash-head">
+    <h1>My clients</h1>
+    <p class="text-muted mb-0">Clients the admin has assigned to you, with their latest numbers.</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="panel"><p class="empty mb-0">No clients are assigned to you yet. The admin assigns clients from the Assignments page.</p></div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var c in Model)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="panel client-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="avatar">@Initial(c.Name)</span>
+                        <div>
+                            <div class="item-title">@c.Name</div>
+                            <div class="item-sub">@(c.Phone ?? "No phone")</div>
+                        </div>
+                    </div>
+                    <dl class="stat-grid">
+                        <div><dt>Weight</dt><dd>@(c.LatestWeight is decimal w ? w.ToString("0.0", CultureInfo.InvariantCulture) + " kg" : "-")</dd></div>
+                        <div><dt>BMI</dt><dd>@(c.Bmi is decimal b ? b.ToString("0.0", CultureInfo.InvariantCulture) : "-")</dd></div>
+                        <div><dt>Sessions, 7 days</dt><dd>@c.WeekSessions</dd></div>
+                        <div><dt>Last workout</dt><dd>@(c.LastWorkout?.ToString("dd MMM") ?? "-")</dd></div>
+                    </dl>
+                    <div class="d-flex gap-2 mt-3">
+                        <a class="btn btn-primary btn-sm" asp-action="NewPlan" asp-route-kind="workout" asp-route-clientId="@c.ClientId"><i class="bi bi-lightning-charge"></i> Workout plan</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-action="NewPlan" asp-route-kind="diet" asp-route-clientId="@c.ClientId"><i class="bi bi-egg-fried"></i> Diet plan</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-action="Feedback" asp-route-clientId="@c.ClientId"><i class="bi bi-chat-left-text"></i> Feedback</a>
+                    </div>
+                    <div class="item-sub mt-2">@c.PlanCount plan@(c.PlanCount == 1 ? "" : "s") from you</div>
+                </div>
+            </div>
+        }
+    </div>
+}

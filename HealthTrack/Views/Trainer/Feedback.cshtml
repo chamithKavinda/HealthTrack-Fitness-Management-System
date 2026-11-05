@@ -1,0 +1,81 @@
+@model HealthTrack.Models.TrainerFeedbackViewModel
+@{
+    ViewData["Title"] = "Feedback";
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+<div class="dash-head">
+    <h1>Feedback to clients</h1>
+    <p class="text-muted mb-0">Send encouragement or a correction. The client gets a notification straight away.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <form class="panel" asp-action="SendFeedback" method="post" novalidate>
+            <h2>New feedback</h2>
+            @if (!Model.Clients.Any())
+            {
+                <p class="empty mb-0">No clients are assigned to you yet.</p>
+            }
+            else
+            {
+                <div class="form-floating mb-1">
+                    <select asp-for="Input.ClientId" class="form-select">
+                        <option value="0">Choose a client...</option>
+                        @foreach (var c in Model.Clients)
+                        {
+                            <option value="@c.Id" selected="@(Model.Input.ClientId == c.Id)">@c.Name</option>
+                        }
+                    </select>
+                    <label asp-for="Input.ClientId">Client</label>
+                </div>
+                <span asp-validation-for="Input.ClientId" class="field-error"></span>
+
+                <div class="form-floating mb-1 mt-2">
+                    <textarea asp-for="Input.Message" class="form-control" style="height:150px" maxlength="500" placeholder="Message"></textarea>
+                    <label asp-for="Input.Message">Message</label>
+                </div>
+                <span asp-validation-for="Input.Message" class="field-error"></span>
+                <div class="item-sub mb-3"><span id="fbCount">0</span> / 500</div>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Send feedback</button>
+            }
+        </form>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="panel">
+            <h2>Sent by you</h2>
+            @if (!Model.Items.Any()) { <p class="empty mb-0">You have not sent any feedback yet.</p> }
+            else
+            {
+                <ul class="rows">
+                    @foreach (var f in Model.Items)
+                    {
+                        <li>
+                            <span class="avatar">@Initial(f.ClientName)</span>
+                            <div>
+                                <div class="item-title">@f.ClientName</div>
+                                <div class="fb-msg">@f.Message</div>
+                                <div class="item-sub">@f.When.ToString("dd MMM yyyy, h:mm tt")</div>
+                            </div>
+                            <form asp-action="DeleteFeedback" method="post" onsubmit="return confirm('Delete this feedback?');">
+                                <input type="hidden" name="id" value="@f.Id" />
+                                <button class="icon-btn" type="submit" aria-label="Delete feedback"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var t = document.getElementById('Input_Message'), c = document.getElementById('fbCount');
+            if (!t || !c) return;
+            var up = function () { c.textContent = t.value.length; };
+            t.addEventListener('input', up); up();
+        })();
+    </script>
+}

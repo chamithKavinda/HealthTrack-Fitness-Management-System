@@ -1,0 +1,71 @@
+@model HealthTrack.Models.WorkoutPlanDetailsViewModel
+@{ ViewData["Title"] = Model.Title; }
+<div class="dash-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <a class="back-link" asp-action="Plans"><i class="bi bi-arrow-left"></i> All plans</a>
+        <h1>@Model.Title</h1>
+        <p class="text-muted mb-0">For @Model.ClientName · @Model.Start.ToString("dd MMM yyyy")@(Model.End is DateOnly e ? " to " + e.ToString("dd MMM yyyy") : "")@(string.IsNullOrWhiteSpace(Model.Goal) ? "" : " · Goal: " + Model.Goal)</p>
+    </div>
+    <form asp-action="DeleteWorkoutPlan" asp-route-id="@Model.Id" method="post" data-confirm="Delete this whole plan?">
+        <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash3"></i> Delete plan</button>
+    </form>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form class="panel" asp-action="AddWorkoutItem" asp-route-id="@Model.Id" method="post" novalidate>
+            <h2>Add an exercise</h2>
+            <div class="form-floating mb-1">
+                <select asp-for="Input.DayOfWeek" class="form-select">
+                    @foreach (var d in HealthTrack.Models.PlanDays.All) { <option value="@d" selected="@(Model.Input.DayOfWeek == d)">@d</option> }
+                </select>
+                <label asp-for="Input.DayOfWeek"></label>
+            </div>
+            <span asp-validation-for="Input.DayOfWeek" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.ExerciseName" class="form-control" placeholder="Exercise" />
+                <label asp-for="Input.ExerciseName"></label>
+            </div>
+            <span asp-validation-for="Input.ExerciseName" class="field-error"></span>
+            <div class="row g-2 mt-0">
+                <div class="col-4">
+                    <div class="form-floating mb-1"><input asp-for="Input.Sets" type="number" class="form-control" placeholder="Sets" /><label asp-for="Input.Sets"></label></div>
+                    <span asp-validation-for="Input.Sets" class="field-error"></span>
+                </div>
+                <div class="col-4">
+                    <div class="form-floating mb-1"><input asp-for="Input.Reps" type="number" class="form-control" placeholder="Reps" /><label asp-for="Input.Reps"></label></div>
+                    <span asp-validation-for="Input.Reps" class="field-error"></span>
+                </div>
+                <div class="col-4">
+                    <div class="form-floating mb-1"><input asp-for="Input.DurationMin" type="number" class="form-control" placeholder="Min" /><label asp-for="Input.DurationMin"></label></div>
+                    <span asp-validation-for="Input.DurationMin" class="field-error"></span>
+                </div>
+            </div>
+            <button class="btn btn-primary w-100 mt-3" type="submit" data-loading>Add exercise</button>
+        </form>
+    </div>
+    <div class="col-lg-8">
+        <div class="panel">
+            <h2>Weekly schedule</h2>
+            @if (!Model.Days.Any()) { <p class="empty">No exercises yet. Add the first one.</p> }
+            @foreach (var day in Model.Days)
+            {
+                <div class="day-group">
+                    <div class="day-head"><strong>@day.Day</strong><span class="text-muted">@day.Items.Count exercise@(day.Items.Count == 1 ? "" : "s")</span></div>
+                    @foreach (var i in day.Items)
+                    {
+                        <div class="log-row">
+                            <div>
+                                <div class="item-title">@i.Name</div>
+                                <div class="item-sub">@i.Summary</div>
+                            </div>
+                            <form asp-action="DeleteWorkoutItem" asp-route-id="@i.Id" method="post" data-confirm="Remove this exercise?">
+                                <button class="icon-btn icon-btn--danger" type="submit" aria-label="Remove exercise"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
