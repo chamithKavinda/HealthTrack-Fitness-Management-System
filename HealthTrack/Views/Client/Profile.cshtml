@@ -1,0 +1,59 @@
+@model HealthTrack.Models.ProfileInput
+@{ ViewData["Title"] = "Profile"; }
+<div class="dash-head">
+    <h1>Your profile</h1>
+    <p class="text-muted mb-0">Your height is used to calculate BMI. Medical notes are stored encrypted.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <form class="panel" asp-action="Profile" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="field-error"></div>
+            <div class="form-floating mb-1">
+                <input asp-for="FullName" class="form-control" placeholder="Full name" />
+                <label asp-for="FullName"></label>
+            </div>
+            <span asp-validation-for="FullName" class="field-error"></span>
+            <div class="row g-3 mt-0">
+                <div class="col-md-6">
+                    <div class="form-floating mb-1">
+                        <input asp-for="DateOfBirth" type="date" class="form-control" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" />
+                        <label asp-for="DateOfBirth"></label>
+                    </div>
+                    <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating mb-1">
+                        <select asp-for="Gender" class="form-select">
+                            <option value="">Prefer not to say</option>
+                            @foreach (var g in new[] { "Male", "Female", "Other" }) { <option value="@g" selected="@(Model.Gender == g)">@g</option> }
+                        </select>
+                        <label asp-for="Gender"></label>
+                    </div>
+                    <span asp-validation-for="Gender" class="field-error"></span>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating mb-1">
+                        <input asp-for="HeightCm" type="number" step="0.1" class="form-control" placeholder="Height" />
+                        <label asp-for="HeightCm"></label>
+                    </div>
+                    <span asp-validation-for="HeightCm" class="field-error"></span>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating mb-1">
+                        <input asp-for="Phone" class="form-control" placeholder="Phone" />
+                        <label asp-for="Phone"></label>
+                    </div>
+                    <span asp-validation-for="Phone" class="field-error"></span>
+                </div>
+            </div>
+            <div class="form-floating mb-1 mt-3">
+                <textarea asp-for="MedicalNotes" class="form-control" placeholder="Notes" style="height:130px"></textarea>
+                <label asp-for="MedicalNotes"></label>
+            </div>
+            <span asp-validation-for="MedicalNotes" class="field-error"></span>
+            <p class="item-sub mt-2"><i class="bi bi-shield-lock"></i> Encrypted before it is saved. Only you and the application can read it.</p>
+            <button class="btn btn-primary mt-2" type="submit" data-loading>Save profile</button>
+        </form>
+    </div>
+</div>

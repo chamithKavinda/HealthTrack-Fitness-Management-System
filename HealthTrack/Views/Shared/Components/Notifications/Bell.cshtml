@@ -1,0 +1,5 @@
+@model HealthTrack.Models.NotificationRailModel
+<a class="icon-btn bell" asp-controller="Notifications" asp-action="Index" aria-label="Notifications@(Model.Unread > 0 ? ", " + Model.Unread + " unread" : "")">
+    <i class="bi bi-bell"></i>
+    @if (Model.Unread > 0) { <span class="bell-badge">@(Model.Unread > 9 ? "9+" : Model.Unread.ToString())</span> }
+</a>

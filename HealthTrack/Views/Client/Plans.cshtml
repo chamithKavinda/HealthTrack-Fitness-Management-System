@@ -1,0 +1,82 @@
+@model HealthTrack.Models.ClientPlansViewModel
+@{ ViewData["Title"] = "My plans"; }
+<div class="dash-head">
+    <h1>Plans from your trainer</h1>
+    <p class="text-muted mb-0">Follow the schedule, and tap "Log it" to record a planned exercise.</p>
+</div>
+
+@if (!Model.Workout.Any() && !Model.Diet.Any())
+{
+    <div class="panel"><p class="empty mb-0">Your trainer hasn't shared a plan yet.</p></div>
+}
+
+@if (Model.Workout.Any())
+{
+    <h2 class="section-title">Workout plans</h2>
+    <div class="row g-4 mb-4">
+        @foreach (var p in Model.Workout)
+        {
+            <div class="col-lg-6">
+                <div class="panel">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <h2 class="mb-1">@p.Title</h2>
+                        <span class="chip @(p.Active ? "" : "chip--pending")">@(p.Active ? "Active" : "Not active")</span>
+                    </div>
+                    <p class="item-sub mb-3">@p.Trainer · @p.Start.ToString("dd MMM yyyy")@(p.End is DateOnly e ? " to " + e.ToString("dd MMM yyyy") : "")@(string.IsNullOrWhiteSpace(p.Goal) ? "" : " · " + p.Goal)</p>
+                    @if (!p.Days.Any()) { <p class="empty">No exercises added yet.</p> }
+                    @foreach (var day in p.Days)
+                    {
+                        <div class="day-group">
+                            <div class="day-head"><strong>@day.Day</strong></div>
+                            @foreach (var i in day.Items)
+                            {
+                                <div class="log-row">
+                                    <div>
+                                        <div class="item-title">@i.Name</div>
+                                        <div class="item-sub">@i.Summary</div>
+                                    </div>
+                                    <a class="btn btn-outline-secondary btn-sm" asp-action="Workouts" asp-route-itemId="@i.Id">Log it</a>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (Model.Diet.Any())
+{
+    <h2 class="section-title">Diet plans</h2>
+    <div class="row g-4">
+        @foreach (var p in Model.Diet)
+        {
+            <div class="col-lg-6">
+                <div class="panel">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <h2 class="mb-1">@p.Title</h2>
+                        <span class="chip @(p.Active ? "" : "chip--pending")">@(p.Active ? "Active" : "Not active")</span>
+                    </div>
+                    <p class="item-sub mb-3">@p.Trainer · @p.Start.ToString("dd MMM yyyy")@(p.End is DateOnly e ? " to " + e.ToString("dd MMM yyyy") : "")</p>
+                    @if (!p.Days.Any()) { <p class="empty">No meals added yet.</p> }
+                    @foreach (var day in p.Days)
+                    {
+                        <div class="day-group">
+                            <div class="day-head"><strong>@day.Day</strong><span class="text-muted">@day.Kcal kcal</span></div>
+                            @foreach (var i in day.Items)
+                            {
+                                <div class="log-row">
+                                    <div>
+                                        <div class="item-title">@i.Food</div>
+                                        <div class="item-sub">@i.MealType@(i.Calories is int c ? $" · {c} kcal" : "")</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

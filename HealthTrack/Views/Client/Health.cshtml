@@ -1,0 +1,100 @@
+@using System.Globalization
+@model HealthTrack.Models.HealthPageViewModel
+@{
+    ViewData["Title"] = "Health";
+    string Inv(decimal v, string f) => v.ToString(f, CultureInfo.InvariantCulture);
+}
+<div class="dash-head">
+    <h1>Health measurements</h1>
+    <p class="text-muted mb-0">Record your weight, heart rate and blood pressure. BMI is worked out for you.</p>
+</div>
+
+@if (Model.HeightCm is null)
+{
+    <div class="note mb-4"><i class="bi bi-info-circle"></i> Add your height on the <a asp-action="Profile">profile page</a> so BMI can be calculated.</div>
+}
+
+<section class="scoreboard scoreboard--3 mb-4">
+    <div class="cell">
+        <span class="label"><i class="bi bi-speedometer2 text-primary"></i> Latest weight</span>
+        <div class="score-row">
+            @if (Model.LatestWeight is decimal w) { <span class="score" data-count="@Inv(w, "0.0")" data-decimals="1">@Inv(w, "0.0")</span><span class="unit">kg</span> } else { <span class="score">-</span> }
+        </div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-heart-pulse text-success"></i> Body Mass Index</span>
+        <div class="score-row">
+            @if (Model.LatestBmi is decimal b) { <span class="score" data-count="@Inv(b, "0.0")" data-decimals="1">@Inv(b, "0.0")</span><span class="unit">@Model.BmiCategory</span> } else { <span class="score">-</span> }
+        </div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-journal-check text-info"></i> Recorded entries</span>
+        <div class="score-row">
+            <span class="score" data-count="@Model.EntryCount">@Model.EntryCount</span><span class="unit">logs</span>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <form class="panel" asp-action="AddMetric" method="post" novalidate>
+            <h2>New measurement</h2>
+            <div class="form-floating mb-1">
+                <input asp-for="Input.Date" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" value="@Model.Input.Date.ToString("yyyy-MM-dd")" />
+                <label asp-for="Input.Date">Date</label>
+            </div>
+            <span asp-validation-for="Input.Date" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.WeightKg" type="number" step="0.1" class="form-control" placeholder="Weight" />
+                <label asp-for="Input.WeightKg"></label>
+            </div>
+            <span asp-validation-for="Input.WeightKg" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.HeartRate" type="number" class="form-control" placeholder="Heart rate" />
+                <label asp-for="Input.HeartRate"></label>
+            </div>
+            <span asp-validation-for="Input.HeartRate" class="field-error"></span>
+            <div class="form-floating mb-1 mt-2">
+                <input asp-for="Input.BloodPressure" class="form-control" placeholder="120/80" />
+                <label asp-for="Input.BloodPressure"></label>
+            </div>
+            <span asp-validation-for="Input.BloodPressure" class="field-error"></span>
+            <button class="btn btn-primary w-100 mt-3" type="submit" data-loading>Save measurement</button>
+        </form>
+    </div>
+    <div class="col-lg-8">
+        <div class="panel">
+            <h2>History</h2>
+            @if (!Model.Rows.Any())
+            {
+                <p class="empty">No measurements yet. Add your first one.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table ht-table align-middle mb-0">
+                        <thead><tr><th>Date</th><th>Weight</th><th>BMI</th><th>Heart rate</th><th>BP</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td>@r.Date.ToString("dd MMM yyyy")</td>
+                                <td>@Inv(r.WeightKg, "0.0") kg</td>
+                                <td>@(r.Bmi is decimal bm ? Inv(bm, "0.0") : "-")</td>
+                                <td>@(r.HeartRate?.ToString() ?? "-")</td>
+                                <td>@(r.BloodPressure ?? "-")</td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteMetric" method="post" data-confirm="Delete this measurement?">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <button class="icon-btn icon-btn--danger" type="submit" aria-label="Delete measurement"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
