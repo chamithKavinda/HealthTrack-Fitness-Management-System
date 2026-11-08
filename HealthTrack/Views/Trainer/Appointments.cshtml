@@ -1,0 +1,103 @@
+@using HealthTrack.Services
+@model HealthTrack.Models.TrainerAppointmentsViewModel
+@{
+    ViewData["Title"] = "Appointments";
+    var slots = AppointmentRules.SlotOptions();
+    string ChipClass(string s) => s switch { "Approved" => "", "Completed" => "", "Pending" => "chip--pending", _ => "chip--off" };
+    var minDate = DateTime.Today.ToString("yyyy-MM-dd");
+    var maxDate = DateTime.Today.AddDays(AppointmentRules.MaxDaysAhead).ToString("yyyy-MM-dd");
+}
+
+<div class="dash-head">
+    <h1>Appointments</h1>
+    <p class="text-muted mb-0">Approve requests, move a session to another time, or cancel with a short reason. Clients are notified straight away.</p>
+</div>
+
+@* ---------- reusable card ---------- *@
+@{
+    async Task Card(HealthTrack.Models.TrainerApptRow a, bool canApprove, bool canChange, bool canComplete)
+    {
+        <li class="appt">
+            <div class="date-chip"><span class="d">@a.When.ToString("dd")</span><span class="m">@a.When.ToString("MMM")</span></div>
+            <div class="appt-main">
+                <div class="item-title">@a.ClientName · @a.When.ToString("dddd, h:mm tt")</div>
+                <div class="item-sub">@a.Reason</div>
+                @if (!string.IsNullOrWhiteSpace(a.Remarks)) { <div class="appt-remark"><i class="bi bi-chat-left-text"></i> @a.Remarks</div> }
+
+                @if (canApprove || canChange || canComplete)
+                {
+                    <div class="appt-actions">
+                        @if (canApprove)
+                        {
+                            <details class="act">
+                                <summary class="btn btn-primary btn-sm">Approve</summary>
+                                <form asp-action="ApproveAppointment" method="post" class="act-form">
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <input type="text" name="remarks" class="form-control form-control-sm" maxlength="250" placeholder="Note for the client (optional)" />
+                                    <button class="btn btn-primary btn-sm" type="submit" data-loading>Confirm</button>
+                                </form>
+                            </details>
+                        }
+                        @if (canComplete)
+                        {
+                            <form asp-action="CompleteAppointment" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@a.Id" />
+                                <button class="btn btn-primary btn-sm" type="submit">Mark completed</button>
+                            </form>
+                        }
+                        @if (canChange)
+                        {
+                            <details class="act">
+                                <summary class="btn btn-outline-secondary btn-sm">Change time</summary>
+                                <form asp-action="RescheduleAppointment" method="post" class="act-form">
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <input type="date" name="date" class="form-control form-control-sm" min="@minDate" max="@maxDate" value="@a.When.ToString("yyyy-MM-dd")" required />
+                                    <select name="time" class="form-select form-select-sm">
+                                        @foreach (var s in slots) { <option value="@s.Value" selected="@(a.When.ToString("HH:mm") == s.Value)">@s.Label</option> }
+                                    </select>
+                                    <input type="text" name="remarks" class="form-control form-control-sm" maxlength="250" placeholder="Note for the client (optional)" />
+                                    <button class="btn btn-primary btn-sm" type="submit" data-loading>Save new time</button>
+                                </form>
+                            </details>
+                            <details class="act">
+                                <summary class="btn btn-outline-danger btn-sm">@(a.Status == "Pending" ? "Decline" : "Cancel")</summary>
+                                <form asp-action="CancelAppointment" method="post" class="act-form" data-confirm="@(a.Status == "Pending" ? "Decline this request?" : "Cancel this appointment?")">
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <input type="text" name="remarks" class="form-control form-control-sm" maxlength="250" placeholder="Reason for the client (required)" required />
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">@(a.Status == "Pending" ? "Decline request" : "Cancel appointment")</button>
+                                </form>
+                            </details>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="appt-side"><span class="chip @ChipClass(a.Status)">@a.Status</span></div>
+        </li>
+    }
+}
+
+<div class="panel mb-4">
+    <h2>Requests waiting for you (@Model.Pending.Count)</h2>
+    @if (!Model.Pending.Any()) { <p class="empty mb-0">No pending requests.</p> }
+    else { <ul class="appt-list">@foreach (var a in Model.Pending) { await Card(a, true, true, false); }</ul> }
+</div>
+
+<div class="panel mb-4">
+    <h2>Upcoming (@Model.Upcoming.Count)</h2>
+    @if (!Model.Upcoming.Any()) { <p class="empty mb-0">No approved sessions coming up.</p> }
+    else { <ul class="appt-list">@foreach (var a in Model.Upcoming) { await Card(a, false, true, false); }</ul> }
+</div>
+
+@if (Model.ToComplete.Any())
+{
+    <div class="panel mb-4">
+        <h2>Finished sessions to close (@Model.ToComplete.Count)</h2>
+        <ul class="appt-list">@foreach (var a in Model.ToComplete) { await Card(a, false, false, true); }</ul>
+    </div>
+}
+
+<div class="panel">
+    <h2>History</h2>
+    @if (!Model.History.Any()) { <p class="empty mb-0">Nothing here yet.</p> }
+    else { <ul class="appt-list appt--past">@foreach (var a in Model.History) { await Card(a, false, false, false); }</ul> }
+</div>

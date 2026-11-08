@@ -1,0 +1,123 @@
+@using System.Globalization
+@model HealthTrack.Models.TrainerReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+    var inv = CultureInfo.InvariantCulture;
+    string Kg(decimal? v) => v is decimal d ? d.ToString("0.0", inv) : "-";
+    string Chg(decimal? v) => v is decimal d ? (d > 0 ? "+" : "") + d.ToString("0.0", inv) : "-";
+    var d2 = Model.Detail;
+}
+<div class="dash-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>Client reports</h1>
+        <p class="text-muted mb-0">Progress, activity and plan adherence for the clients assigned to you.</p>
+    </div>
+    <div class="d-flex gap-2 no-print">
+        <a class="btn btn-outline-secondary btn-sm" asp-action="ExportClients"><i class="bi bi-filetype-csv"></i> Export CSV</a>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+    </div>
+</div>
+
+@if (!Model.Rows.Any())
+{
+    <div class="panel"><p class="empty mb-0">No clients are assigned to you yet, so there is nothing to report.</p></div>
+}
+else
+{
+    <div class="panel mb-4">
+        <h2>All clients</h2>
+        <p class="item-sub">Sessions and calories cover the last 28 days. Adherence is the share of planned exercises done in the last 7 days.</p>
+        <div class="table-responsive">
+            <table class="report-table">
+                <thead>
+                    <tr><th>Client</th><th>Start</th><th>Latest</th><th>Change</th><th>BMI</th><th>Sessions</th><th>Burned</th><th>Avg eaten</th><th>Adherence</th><th>Last active</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr class="@(d2?.Row.ClientId == r.ClientId ? "is-open" : "")">
+                        <td><a asp-action="Reports" asp-route-clientId="@r.ClientId" class="fw-semibold">@r.Name</a></td>
+                        <td>@Kg(r.StartWeight)</td>
+                        <td>@Kg(r.LatestWeight)</td>
+                        <td>@Chg(r.Change)</td>
+                        <td>@(r.Bmi is decimal b ? b.ToString("0.0", inv) : "-") <span class="item-sub">@r.Category</span></td>
+                        <td>@r.Sessions28</td>
+                        <td>@r.Burned28.ToString("N0", inv) kcal</td>
+                        <td>@(r.AvgEaten is int e ? e.ToString("N0", inv) + " kcal" : "-")</td>
+                        <td>
+                            @if (r.AdherencePct is int p)
+                            {
+                                <div class="bar" title="@p%"><span style="width:@p%"></span></div><small>@p%</small>
+                            }
+                            else { <span class="item-sub">No plan</span> }
+                        </td>
+                        <td>@(r.LastActive?.ToString("dd MMM") ?? "-")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <form method="get" asp-action="Reports" class="filter-bar no-print">
+        <label for="clientId" class="item-sub mb-0">Client detail</label>
+        <select id="clientId" name="clientId" class="form-select" data-autosubmit>
+            <option value="">Choose a client...</option>
+            @foreach (var r in Model.Rows)
+            {
+                <option value="@r.ClientId" selected="@(d2?.Row.ClientId == r.ClientId)">@r.Name</option>
+            }
+        </select>
+        <noscript><button class="btn btn-primary btn-sm">Show</button></noscript>
+    </form>
+
+    @if (d2 != null)
+    {
+        <h2 class="mt-4 mb-3">@d2.Row.Name</h2>
+        <section class="scoreboard mb-4">
+            <div class="cell"><span class="label">Latest weight</span><span class="score">@Kg(d2.Row.LatestWeight)</span><span class="unit">kg</span></div>
+            <div class="cell"><span class="label">Change</span><span class="score">@Chg(d2.Row.Change)</span><span class="unit">kg</span></div>
+            <div class="cell"><span class="label">Sessions, 28 days</span><span class="score">@d2.Row.Sessions28</span></div>
+            <div class="cell"><span class="label">Adherence</span><span class="score">@(d2.Row.AdherencePct?.ToString() ?? "-")</span>@if (d2.Row.AdherencePct != null) {<span class="unit">%</span>}</div>
+        </section>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div class="panel">
+                    <h2>Weight and BMI</h2>
+                    @if (d2.HasWeightTrend) { <div class="chart-box"><canvas id="weightChart" aria-label="Weight and BMI over time"></canvas></div> }
+                    else { <p class="empty mb-0">Needs at least two measurements to draw a trend.</p> }
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="panel">
+                    <h2>Calories, last 14 days</h2>
+                    <div class="chart-box"><canvas id="caloriesChart" aria-label="Calories burned and eaten"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="panel">
+                    <h2>Sessions per week</h2>
+                    <div class="chart-box"><canvas id="weeklyChart" aria-label="Workout sessions per week"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="panel">
+                    <h2>Appointments with you</h2>
+                    <dl class="stat-grid">
+                        <div><dt>Completed</dt><dd>@d2.Completed</dd></div>
+                        <div><dt>Upcoming</dt><dd>@d2.Upcoming</dd></div>
+                        <div><dt>Awaiting approval</dt><dd>@d2.Pending</dd></div>
+                        <div><dt>Cancelled</dt><dd>@d2.Cancelled</dd></div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <script id="report-data" type="application/json">@Json.Serialize(d2.Chart)</script>
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="~/js/reports.js" asp-append-version="true"></script>
+}

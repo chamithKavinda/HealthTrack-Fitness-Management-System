@@ -1,0 +1,59 @@
+@model HealthTrack.Models.TrainerPlansViewModel
+@{ ViewData["Title"] = "Plans"; }
+<div class="dash-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>Plans</h1>
+        <p class="text-muted mb-0">Workout and diet plans you have written for your clients.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" asp-action="NewPlan" asp-route-kind="workout"><i class="bi bi-plus-lg"></i> Workout plan</a>
+        <a class="btn btn-outline-secondary" asp-action="NewPlan" asp-route-kind="diet"><i class="bi bi-plus-lg"></i> Diet plan</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="panel">
+            <h2>Workout plans</h2>
+            @if (!Model.Workout.Any()) { <p class="empty">No workout plans yet.</p> }
+            else
+            {
+                <ul class="rows plan-rows">
+                    @foreach (var p in Model.Workout)
+                    {
+                        <li>
+                            <span class="avatar"><i class="bi bi-lightning-charge"></i></span>
+                            <a class="plan-link" asp-action="WorkoutPlanDetails" asp-route-id="@p.Id">
+                                <span class="item-title d-block">@p.Title</span>
+                                <span class="item-sub">@p.ClientName · @p.Start.ToString("dd MMM yyyy")@(p.End is DateOnly e ? " to " + e.ToString("dd MMM yyyy") : "")</span>
+                            </a>
+                            <span class="chip">@p.ItemCount exercise@(p.ItemCount == 1 ? "" : "s")</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel">
+            <h2>Diet plans</h2>
+            @if (!Model.Diet.Any()) { <p class="empty">No diet plans yet.</p> }
+            else
+            {
+                <ul class="rows plan-rows">
+                    @foreach (var p in Model.Diet)
+                    {
+                        <li>
+                            <span class="avatar"><i class="bi bi-egg-fried"></i></span>
+                            <a class="plan-link" asp-action="DietPlanDetails" asp-route-id="@p.Id">
+                                <span class="item-title d-block">@p.Title</span>
+                                <span class="item-sub">@p.ClientName · @p.Start.ToString("dd MMM yyyy")@(p.End is DateOnly e ? " to " + e.ToString("dd MMM yyyy") : "")</span>
+                            </a>
+                            <span class="chip">@p.ItemCount meal@(p.ItemCount == 1 ? "" : "s")</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>

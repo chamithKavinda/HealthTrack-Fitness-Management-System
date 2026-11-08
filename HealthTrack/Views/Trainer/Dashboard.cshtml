@@ -1,0 +1,79 @@
+@model HealthTrack.Models.TrainerDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+
+<div class="dash-head">
+    <h1>@greeting, @Model.FullName</h1>
+    <p class="text-muted mb-0">@(string.IsNullOrWhiteSpace(Model.Specialization) ? "Trainer" : Model.Specialization)</p>
+</div>
+
+<section class="scoreboard mb-4" aria-label="Your numbers">
+    <div class="cell">
+        <span class="label"><i class="bi bi-people text-primary"></i> Active clients</span>
+        <div class="score-row"><span class="score" data-count="@Model.ActiveClients">@Model.ActiveClients</span><span class="unit">members</span></div>
+    </div>
+    <div class="cell @(Model.PendingAppointments > 0 ? "alert" : "")">
+        <span class="label"><i class="bi bi-calendar-event text-danger"></i> Appointments to answer</span>
+        <div class="score-row"><span class="score" data-count="@Model.PendingAppointments">@Model.PendingAppointments</span><span class="unit">pending</span></div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-clipboard2-pulse text-success"></i> Plans created</span>
+        <div class="score-row"><span class="score" data-count="@Model.PlansCreated">@Model.PlansCreated</span><span class="unit">plans</span></div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="panel">
+            <h2>My clients</h2>
+            @if (!Model.Clients.Any())
+            {
+                <p class="empty">No clients yet. An administrator assigns clients to you.</p>
+            }
+            else
+            {
+                <ul class="rows">
+                    @foreach (var c in Model.Clients)
+                    {
+                        <li>
+                            <span class="avatar">@Initial(c.FullName)</span>
+                            <span class="item-title">@c.FullName</span>
+                            <span class="item-sub">@c.Phone</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel">
+            <h2>Waiting for your answer</h2>
+            @if (!Model.Pending.Any())
+            {
+                <p class="empty">No appointment requests are waiting.</p>
+            }
+            else
+            {
+                <ol class="timeline">
+                    @foreach (var a in Model.Pending)
+                    {
+                        <li>
+                            <div class="date-chip"><span class="d">@a.When.ToString("dd")</span><span class="m">@a.When.ToString("MMM")</span></div>
+                            <div>
+                                <div class="item-title">@a.Person</div>
+                                <div class="item-sub">@a.When.ToString("h:mm tt")@(string.IsNullOrWhiteSpace(a.Reason) ? "" : ", " + a.Reason)</div>
+                            </div>
+                            <span class="chip chip--pending">@a.Status</span>
+                        </li>
+                    }
+                </ol>
+            }
+        </div>
+    </div>
+</div>

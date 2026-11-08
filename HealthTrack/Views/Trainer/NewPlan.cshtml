@@ -1,0 +1,66 @@
+@model HealthTrack.Models.NewPlanViewModel
+@{ ViewData["Title"] = Model.IsWorkout ? "New workout plan" : "New diet plan"; }
+<div class="dash-head">
+    <h1>@(Model.IsWorkout ? "New workout plan" : "New diet plan")</h1>
+    <p class="text-muted mb-0">Start with the basics. You add the @(Model.IsWorkout ? "exercises" : "meals") on the next page.</p>
+</div>
+
+@if (!Model.Clients.Any())
+{
+    <div class="note"><i class="bi bi-info-circle"></i> You have no assigned clients yet. Ask the admin to assign clients to you first.</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-lg-7">
+            <form class="panel" asp-action="NewPlan" method="post" novalidate>
+                <input type="hidden" name="kind" value="@Model.Kind" />
+                <div class="form-floating mb-1">
+                    <select asp-for="Input.ClientId" class="form-select">
+                        <option value="">Choose a client</option>
+                        @foreach (var c in Model.Clients) { <option value="@c.Id" selected="@(Model.Input.ClientId == c.Id)">@c.Name</option> }
+                    </select>
+                    <label asp-for="Input.ClientId"></label>
+                </div>
+                <span asp-validation-for="Input.ClientId" class="field-error"></span>
+
+                <div class="form-floating mb-1 mt-2">
+                    <input asp-for="Input.Title" class="form-control" placeholder="Title" />
+                    <label asp-for="Input.Title"></label>
+                </div>
+                <span asp-validation-for="Input.Title" class="field-error"></span>
+
+                @if (Model.IsWorkout)
+                {
+                    <div class="form-floating mb-1 mt-2">
+                        <input asp-for="Input.Goal" class="form-control" placeholder="Goal" />
+                        <label asp-for="Input.Goal"></label>
+                    </div>
+                    <span asp-validation-for="Input.Goal" class="field-error"></span>
+                }
+
+                <div class="row g-3 mt-0">
+                    <div class="col-md-6">
+                        <div class="form-floating mb-1">
+                            <input asp-for="Input.StartDate" type="date" class="form-control" value="@Model.Input.StartDate.ToString("yyyy-MM-dd")" />
+                            <label asp-for="Input.StartDate"></label>
+                        </div>
+                        <span asp-validation-for="Input.StartDate" class="field-error"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating mb-1">
+                            <input asp-for="Input.EndDate" type="date" class="form-control" value="@(Model.Input.EndDate?.ToString("yyyy-MM-dd"))" />
+                            <label asp-for="Input.EndDate"></label>
+                        </div>
+                        <span asp-validation-for="Input.EndDate" class="field-error"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit" data-loading>Create plan</button>
+                    <a class="btn btn-outline-secondary" asp-action="Plans">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+}
