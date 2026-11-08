@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Home";
+    ViewData["FullBleed"] = true;
+}
+
+<section class="hero">
+    <div class="wrap">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill rise" style="--i:0; background: var(--primary-light); border: 1px solid var(--primary-border); color: var(--primary); font-size: 0.85rem; font-weight: 700;">
+                <i class="bi bi-stars"></i> Unified Health & Coaching Platform
+            </div>
+            <div class="hero-live-badge rise" style="--i:0">
+                <span class="pulse-heart-icon"><i class="bi bi-heart-pulse-fill"></i></span>
+                <span class="pulse-heart-bpm"><strong id="heroBpm">72</strong> BPM</span>
+                <span class="pulse-heart-label">Resting Rhythm Active</span>
+                <span class="live-dot" title="Live sensor tracking"></span>
+            </div>
+        </div>
+        <h1 class="display rise" style="--i:1">Your training, meals and health in one modern workspace.</h1>
+        <p class="lead-ht rise" style="--i:2">Effortless logging for clients. Intelligent plan management for trainers. Complete visibility for admins.</p>
+        <div class="d-flex flex-wrap gap-2 rise" style="--i:3">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg"><i class="bi bi-arrow-right-circle"></i> Create an account</a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-ghost btn-lg"><i class="bi bi-box-arrow-in-right"></i> Log in</a>
+        </div>
+    </div>
+    <partial name="_Pulse" />
+</section>
+
+<section class="home-band">
+    <div class="wrap" style="max-width:1200px;margin:0 auto;padding:0 1.25rem;">
+        <h2 class="mb-3" style="font-size:clamp(1.6rem,3vw,2.2rem)">See what your role gets</h2>
+
+        <div class="seg" data-seg-tabs role="tablist" aria-label="Roles">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button type="button" role="tab" id="tab-client" aria-controls="panel-client" aria-selected="true">Client</button>
+            <button type="button" role="tab" id="tab-trainer" aria-controls="panel-trainer" aria-selected="false" tabindex="-1">Trainer</button>
+        </div>
+
+        <div class="role-stage">
+            <div class="role-panel" id="panel-client" role="tabpanel" aria-labelledby="tab-client">
+                <ul class="role-list">
+                    <li><strong>Log</strong> workouts, meals and measurements as you go.</li>
+                    <li><strong>Follow</strong> the workout and diet plans your trainer sets.</li>
+                    <li><strong>Watch</strong> your weight and BMI trend over time.</li>
+                    <li><strong>Book</strong> a consultation with your trainer.</li>
+                </ul>
+            </div>
+            <div class="role-panel" id="panel-trainer" role="tabpanel" aria-labelledby="tab-trainer" hidden>
+                <ul class="role-list">
+                    <li><strong>Build</strong> workout and diet plans for each client.</li>
+                    <li><strong>Review</strong> client progress and leave feedback.</li>
+                    <li><strong>Approve</strong>, move or cancel appointment requests.</li>
+                    <li><strong>Report</strong> on client performance and popular routines.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>

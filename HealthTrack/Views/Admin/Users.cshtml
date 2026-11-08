@@ -1,0 +1,107 @@
+@model HealthTrack.Models.AdminUsersViewModel
+@{
+    ViewData["Title"] = "Users";
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+<div class="dash-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>User management</h1>
+        <p class="text-muted mb-0">Find an account, lock or unlock it, or set a new password. Admin accounts are read-only here.</p>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" asp-action="ExportUsers"><i class="bi bi-filetype-csv"></i> Users CSV</a>
+</div>
+
+<form method="get" asp-action="Users" class="user-filter panel mb-4">
+    <div class="form-floating flex-grow-1">
+        <input name="q" value="@Model.Q" class="form-control" placeholder="Search" maxlength="100" />
+        <label>Search name or email</label>
+    </div>
+    <div class="form-floating">
+        <select name="role" class="form-select" data-autosubmit>
+            <option value="" selected="@(Model.Role == null)">All roles</option>
+            <option value="Client" selected="@(Model.Role == "Client")">Clients</option>
+            <option value="Trainer" selected="@(Model.Role == "Trainer")">Trainers</option>
+            <option value="Admin" selected="@(Model.Role == "Admin")">Admins</option>
+        </select>
+        <label>Role</label>
+    </div>
+    <div class="form-floating">
+        <select name="status" class="form-select" data-autosubmit>
+            <option value="" selected="@(Model.Status == null)">Any status</option>
+            <option value="active" selected="@(Model.Status == "active")">Active</option>
+            <option value="locked" selected="@(Model.Status == "locked")">Locked (@Model.LockedCount)</option>
+        </select>
+        <label>Status</label>
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+</form>
+
+<div class="panel">
+    <h2>@Model.Total account@(Model.Total == 1 ? "" : "s")</h2>
+    @if (!Model.Rows.Any()) { <p class="empty mb-0">No accounts match your search.</p> }
+    else
+    {
+        <div class="table-responsive">
+            <table class="report-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                @foreach (var u in Model.Rows)
+                {
+                    <tr>
+                        <td><span class="d-inline-flex align-items-center gap-2"><span class="avatar avatar-sm">@Initial(u.Name)</span><span class="fw-semibold">@u.Name</span>@if (u.IsSelf) { <span class="item-sub">(you)</span> }</span></td>
+                        <td>@u.Email</td>
+                        <td>@u.Role</td>
+                        <td>@if (u.IsLocked) { <span class="chip chip--off">Locked</span> } else { <span class="chip">Active</span> }</td>
+                        <td>@(u.Joined?.ToString("dd MMM yyyy") ?? "-")</td>
+                        <td class="text-end">
+                            @if (u.CanManage && !u.IsSelf)
+                            {
+                                <div class="d-inline-flex gap-1">
+                                    <a class="btn btn-outline-secondary btn-sm" asp-action="ResetPassword" asp-route-id="@u.Id"><i class="bi bi-key"></i> Reset password</a>
+                                    @if (u.IsLocked)
+                                    {
+                                        <form asp-action="UnlockUser" method="post">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                            <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-unlock"></i> Unlock</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="LockUser" method="post" onsubmit="return confirm('Lock this account? They will be signed out and unable to log in.');">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                            <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-lock"></i> Lock</button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                            else { <span class="item-sub">-</span> }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Pages > 1)
+        {
+            <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Pages">
+                <span class="item-sub">Page @Model.Page of @Model.Pages</span>
+                <div class="d-flex gap-2">
+                    @if (Model.Page > 1) { <a class="btn btn-outline-secondary btn-sm" asp-action="Users" asp-route-q="@Model.Q" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-page="@(Model.Page - 1)"><i class="bi bi-chevron-left"></i> Previous</a> }
+                    @if (Model.Page < Model.Pages) { <a class="btn btn-outline-secondary btn-sm" asp-action="Users" asp-route-q="@Model.Q" asp-route-role="@Model.Role" asp-route-status="@Model.Status" asp-route-page="@(Model.Page + 1)">Next <i class="bi bi-chevron-right"></i></a> }
+                </div>
+            </nav>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('select[data-autosubmit]').forEach(function (s) {
+            s.addEventListener('change', function () { s.form.submit(); });
+        });
+    </script>
+}

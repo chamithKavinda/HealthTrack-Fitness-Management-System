@@ -1,0 +1,79 @@
+@using System.Globalization
+@model HealthTrack.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+
+    var maxUsage = Math.Max(1, Math.Max(Model.WorkoutsLogged, Math.Max(Model.MealsLogged, Model.MetricsLogged)));
+    string Pct(int v) => (v * 100d / maxUsage).ToString("0.#", CultureInfo.InvariantCulture);
+    string Initial(string n) => string.IsNullOrWhiteSpace(n) ? "?" : n.Trim().Substring(0, 1).ToUpper();
+}
+
+<div class="dash-head">
+    <h1>System overview</h1>
+    <p class="text-muted mb-0">Who is using HealthTrack, and how much.</p>
+</div>
+
+<section class="scoreboard mb-4" aria-label="System numbers">
+    <div class="cell">
+        <span class="label"><i class="bi bi-people text-primary"></i> Clients</span>
+        <div class="score-row"><span class="score" data-count="@Model.TotalClients">@Model.TotalClients</span><span class="unit">registered</span></div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-person-badge text-success"></i> Trainers</span>
+        <div class="score-row"><span class="score" data-count="@Model.TotalTrainers">@Model.TotalTrainers</span><span class="unit">active</span></div>
+    </div>
+    <div class="cell @(Model.UnassignedClients > 0 ? "alert" : "")">
+        <span class="label"><i class="bi bi-person-exclamation text-danger"></i> Unassigned clients</span>
+        <div class="score-row"><span class="score" data-count="@Model.UnassignedClients">@Model.UnassignedClients</span><span class="unit">pending</span></div>
+    </div>
+    <div class="cell">
+        <span class="label"><i class="bi bi-calendar2-check text-info"></i> Appointments</span>
+        <div class="score-row"><span class="score" data-count="@Model.TotalAppointments">@Model.TotalAppointments</span><span class="unit">total</span></div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="panel">
+            <h2>What people log</h2>
+            <div class="meter">
+                <div class="row-top"><span>Workouts</span><strong>@Model.WorkoutsLogged</strong></div>
+                <div class="track"><div class="fill" data-pct="@Pct(Model.WorkoutsLogged)"></div></div>
+            </div>
+            <div class="meter">
+                <div class="row-top"><span>Meals</span><strong>@Model.MealsLogged</strong></div>
+                <div class="track"><div class="fill" data-pct="@Pct(Model.MealsLogged)"></div></div>
+            </div>
+            <div class="meter">
+                <div class="row-top"><span>Health measurements</span><strong>@Model.MetricsLogged</strong></div>
+                <div class="track"><div class="fill" data-pct="@Pct(Model.MetricsLogged)"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="panel">
+            <h2>Newest clients</h2>
+            @if (!Model.RecentSignups.Any())
+            {
+                <p class="empty">No clients have registered yet.</p>
+            }
+            else
+            {
+                <ul class="rows">
+                    @foreach (var p in Model.RecentSignups)
+                    {
+                        <li>
+                            <span class="avatar">@Initial(p.FullName)</span>
+                            <span>
+                                <span class="item-title d-block">@p.FullName</span>
+                                <span class="item-sub">@p.Phone</span>
+                            </span>
+                            <span class="item-sub">@p.Joined?.ToString("dd MMM yyyy")</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
